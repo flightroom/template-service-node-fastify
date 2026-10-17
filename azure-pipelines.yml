@@ -1,0 +1,86 @@
+# Required pipeline variables (see README):
+#   MFE_ORCHESTRATOR_REGISTRY_CONNECTION  name of the Docker registry service connection
+#   MFE_ORCHESTRATOR_IMAGE_REPOSITORY     repository path inside the registry (e.g. my-org/%serviceSlug%)
+# Optional:
+#   MFE_ORCHESTRATOR_REGISTRY_HOST        registry host prepended to the image reference sent to the console (e.g. myregistry.azurecr.io)
+#   MICROFRONTEND_ORCHESTRATOR_DOMAIN     console base URL, defaults to %domain%
+trigger:
+  branches:
+    include:
+      - main
+  tags:
+    include:
+      - '*'
+
+pr:
+  branches:
+    include:
+      - main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+stages:
+  - stage: Test
+    displayName: 'Test'
+    jobs:
+      - job: Test
+        steps:
+          - task: NodeTool@0
+            inputs:
+              versionSpec: '24.x'
+          - script: npm install -g pnpm@12.14.0
+            displayName: 'Install pnpm'
+          - script: pnpm install --frozen-lockfile
+            displayName: 'Install dependencies'
+          - script: pnpm test
+            displayName: 'Test'
+          - script: pnpm build
+            displayName: 'Build'
+
+  - stage: Release
+    displayName: 'Release'
+    dependsOn: Test
+    condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
+    variables:
+      - group: MFE_ORCHESTRATOR_SECRETS
+      - name: VERSION
+        value: $[replace(variables['Build.SourceBranch'], 'refs/tags/', '')]
+      - name: MICROFRONTEND_ORCHESTRATOR_DOMAIN_RESOLVED
+        value: $[coalesce(variables['MICROFRONTEND_ORCHESTRATOR_DOMAIN'], '%domain%')]
+      # Empty unless set: declaring MFE_ORCHESTRATOR_REGISTRY_HOST itself here would shadow a value
+      # set in the pipeline settings, since YAML variables take precedence over those
+      - name: MFE_ORCHESTRATOR_REGISTRY_HOST_RESOLVED
+        value: $[coalesce(variables['MFE_ORCHESTRATOR_REGISTRY_HOST'], '')]
+    jobs:
+      - job: Release
+        steps:
+          - task: Docker@2
+            displayName: 'Build and push image'
+            inputs:
+              command: buildAndPush
+              containerRegistry: $(MFE_ORCHESTRATOR_REGISTRY_CONNECTION)
+              repository: $(MFE_ORCHESTRATOR_IMAGE_REPOSITORY)
+              Dockerfile: Dockerfile
+              tags: $(VERSION)
+
+          # Pipeline values reach the script through env only: a $(…) macro pasted into the script
+          # body is substituted as text before bash runs, so a tag could inject shell
+          - script: |
+              IMAGE="${IMAGE_REPOSITORY}:${VERSION}"
+              if [ -n "$REGISTRY_HOST" ]; then
+                IMAGE="${REGISTRY_HOST}/${IMAGE}"
+              fi
+              curl --fail-with-body --show-error --silent -X POST \
+                -H "api-key: ${MFE_API_KEY}" \
+                -H "Content-Type: application/json" \
+                -d "{\"image\":\"${IMAGE}\",\"commitSha\":\"${COMMIT_SHA}\"}" \
+                "${DOMAIN%/}/api/services/by-slug/%serviceSlug%/versions/${VERSION}"
+            displayName: 'Register version in MFE Orchestrator'
+            env:
+              MFE_API_KEY: $(MICROFRONTEND_ORCHESTRATOR_API_KEY)
+              VERSION: $(VERSION)
+              IMAGE_REPOSITORY: $(MFE_ORCHESTRATOR_IMAGE_REPOSITORY)
+              REGISTRY_HOST: $(MFE_ORCHESTRATOR_REGISTRY_HOST_RESOLVED)
+              DOMAIN: $(MICROFRONTEND_ORCHESTRATOR_DOMAIN_RESOLVED)
+              COMMIT_SHA: $(Build.SourceVersion)
