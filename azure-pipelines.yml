@@ -29,8 +29,9 @@ stages:
           - task: NodeTool@0
             inputs:
               versionSpec: '24.x'
-          - script: npm install -g pnpm@12.14.0
-            displayName: 'Install pnpm'
+          # pnpm comes from the packageManager field of package.json
+          - script: corepack enable
+            displayName: 'Enable pnpm (corepack)'
           - script: pnpm install --frozen-lockfile
             displayName: 'Install dependencies'
           - script: pnpm test

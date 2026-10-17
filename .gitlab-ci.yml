@@ -3,7 +3,6 @@ stages:
   - release
 
 variables:
-  PNPM_VERSION: "12.14.0"
   MICROFRONTEND_SLUG: "%serviceSlug%"
   # Base URL of your orchestrator console. Set a project CI/CD variable of the
   # same name to register versions on a different installation.
@@ -13,8 +12,8 @@ test:
   stage: test
   image: node:24
   before_script:
+    # pnpm comes from the packageManager field of package.json
     - corepack enable
-    - corepack prepare pnpm@${PNPM_VERSION} --activate
     - pnpm install --frozen-lockfile
   script:
     - pnpm test
