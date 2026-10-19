@@ -79,3 +79,19 @@ The deploy secret `MICROFRONTEND_ORCHESTRATOR_API_KEY` is injected in the reposi
   - `MFE_ORCHESTRATOR_REGISTRY_CONNECTION`: name of the Docker registry service connection;
   - `MFE_ORCHESTRATOR_IMAGE_REPOSITORY`: repository path in the registry (e.g. `my-org/%serviceSlug%`).
   Optionally `MFE_ORCHESTRATOR_REGISTRY_HOST` (e.g. `myregistry.azurecr.io`) so the registered image reference is fully qualified. The digest is not sent from Azure (optional field).
+
+## Deploys
+
+The orchestrator does not deploy the service: your own deploy pipeline does. So that the console can show which version runs in each environment (domain page, deployed versions matrix), have that pipeline report every successful deploy. Set `ENV_SLUG` (the slug of the environment in the console, e.g. `DEV`, `PROD`), `VERSION`, `IMAGE` and `COMMIT_SHA`, with `MICROFRONTEND_ORCHESTRATOR_API_KEY` holding the deploy secret:
+
+```bash
+DOMAIN="${MICROFRONTEND_ORCHESTRATOR_DOMAIN:-%domain%}"
+curl -fsS -X POST "${DOMAIN%/}/api/services/by-slug/%serviceSlug%/environments/${ENV_SLUG}/deployments" \
+  -H "api-key: ${MICROFRONTEND_ORCHESTRATOR_API_KEY}" \
+  -H "Content-Type: application/json" \
+  -d "{\"version\":\"${VERSION}\",\"image\":\"${IMAGE}\",\"commitSha\":\"${COMMIT_SHA}\"}"
+```
+
+- `ENV_SLUG` is matched regardless of case. When two environments of the project differ only by case (e.g. `prod` and `PROD`), use the exact slug: any other spelling is refused with a 409.
+- `version` is required (letters, digits, dots, dashes and underscores, at most 128); `image` (at most 512 characters) and `commitSha` (at most 64) are optional. The version does not have to be one the release CI registered.
+- The API key needs the MANAGER role, as the deploy secret has. Every report is kept: the latest one is the version shown for that environment.
