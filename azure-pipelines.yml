@@ -28,9 +28,9 @@ stages:
         steps:
           - task: NodeTool@0
             inputs:
-              versionSpec: '24.x'
-          # pnpm comes from the packageManager field of package.json
-          - script: corepack enable
+              versionSpec: '26.x'
+          # pnpm comes from the packageManager field of package.json (Node 25+ no longer bundles corepack)
+          - script: npm install -g corepack && corepack enable
             displayName: 'Enable pnpm (corepack)'
           - script: pnpm install --frozen-lockfile
             displayName: 'Install dependencies'

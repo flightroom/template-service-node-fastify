@@ -10,10 +10,10 @@ variables:
 
 test:
   stage: test
-  image: node:24
+  image: node:26
   before_script:
-    # pnpm comes from the packageManager field of package.json
-    - corepack enable
+    # pnpm comes from the packageManager field of package.json (Node 25+ no longer bundles corepack)
+    - npm install -g corepack && corepack enable
     - pnpm install --frozen-lockfile
   script:
     - pnpm test

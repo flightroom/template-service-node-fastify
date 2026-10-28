@@ -1,5 +1,6 @@
-FROM node:24-alpine AS base
-RUN corepack enable
+FROM node:26-alpine AS base
+# Node 25+ no longer bundles corepack
+RUN npm install -g corepack && corepack enable
 WORKDIR /app
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 
@@ -12,7 +13,7 @@ RUN pnpm build
 FROM base AS prod-deps
 RUN pnpm install --frozen-lockfile --prod
 
-FROM node:24-alpine
+FROM node:26-alpine
 LABEL org.opencontainers.image.title="%serviceSlug%"
 ENV NODE_ENV=production PORT=8080
 WORKDIR /app

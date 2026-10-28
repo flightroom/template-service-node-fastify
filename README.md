@@ -1,6 +1,6 @@
 # %serviceSlug%
 
-Backend service (Node 24 LTS, TypeScript 7, Fastify 5) managed by MFE Orchestrator.
+Backend service (Node 26 LTS, TypeScript 7, Fastify 5) managed by MFE Orchestrator.
 
 ## Endpoints
 
