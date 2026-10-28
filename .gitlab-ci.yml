@@ -41,10 +41,10 @@ release:
     - DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' "$IMAGE" | cut -d@ -f2)
     - |
       curl --fail-with-body --show-error --silent -X POST \
-        -H "api-key: ${MICROFRONTEND_ORCHESTRATOR_API_KEY}" \
+        -H "api-key: ${FLIGHTROOM_API_KEY}" \
         -H "Content-Type: application/json" \
         -d "{\"image\":\"${IMAGE}\",\"digest\":\"${DIGEST}\",\"commitSha\":\"${CI_COMMIT_SHA}\"}" \
-        "${MICROFRONTEND_ORCHESTRATOR_DOMAIN%/}/api/services/by-slug/${MICROFRONTEND_SLUG}/versions/${CI_COMMIT_TAG}"
+        "${MICROFRONTEND_ORCHESTRATOR_DOMAIN%/}/api/backends/by-slug/${MICROFRONTEND_SLUG}/versions/${CI_COMMIT_TAG}"
     - echo "registered ${MICROFRONTEND_SLUG} ${CI_COMMIT_TAG}"
   rules:
     - if: $CI_COMMIT_TAG

@@ -76,10 +76,10 @@ stages:
                 -H "api-key: ${MFE_API_KEY}" \
                 -H "Content-Type: application/json" \
                 -d "{\"image\":\"${IMAGE}\",\"commitSha\":\"${COMMIT_SHA}\"}" \
-                "${DOMAIN%/}/api/services/by-slug/%serviceSlug%/versions/${VERSION}"
+                "${DOMAIN%/}/api/backends/by-slug/%serviceSlug%/versions/${VERSION}"
             displayName: 'Register version in MFE Orchestrator'
             env:
-              MFE_API_KEY: $(MICROFRONTEND_ORCHESTRATOR_API_KEY)
+              MFE_API_KEY: $(FLIGHTROOM_API_KEY)
               VERSION: $(VERSION)
               IMAGE_REPOSITORY: $(MFE_ORCHESTRATOR_IMAGE_REPOSITORY)
               REGISTRY_HOST: $(MFE_ORCHESTRATOR_REGISTRY_HOST_RESOLVED)
