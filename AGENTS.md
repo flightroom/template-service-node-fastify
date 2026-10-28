@@ -1,6 +1,6 @@
 # AGENTS.md - %serviceSlug%
 
-Node 24 LTS + TypeScript 7 + Fastify 5 backend service, packaged as a Docker image.
+Node 26 LTS + TypeScript 7 + Fastify 5 backend service, packaged as a Docker image.
 
 ## Layout
 
