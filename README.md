@@ -68,10 +68,10 @@ readinessProbe:
 ## Releases
 
 1. Create a new version of the service in the MFE Orchestrator console (this creates a git tag on the repository).
-2. The tag triggers CI: tests, image build and push to the container registry, then the image is registered on the console (`POST /api/services/by-slug/%serviceSlug%/versions/<tag>` with `api-key`).
+2. The tag triggers CI: tests, image build and push to the container registry, then the image is registered on the console (`POST /api/backends/by-slug/%serviceSlug%/versions/<tag>` with `api-key`).
 3. The version shows up in the console with its image reference and digest.
 
-The deploy secret `MICROFRONTEND_ORCHESTRATOR_API_KEY` is injected in the repository by the console.
+The deploy secret `FLIGHTROOM_API_KEY` is injected in the repository by the console.
 
 - GitHub Actions: `.github/workflows/release.yml` pushes to `ghcr.io/<owner>/<repo>` using `GITHUB_TOKEN`. Optional repo variable `MICROFRONTEND_ORCHESTRATOR_DOMAIN` overrides the console URL.
 - GitLab CI: `.gitlab-ci.yml` pushes to the project's container registry.
@@ -82,12 +82,12 @@ The deploy secret `MICROFRONTEND_ORCHESTRATOR_API_KEY` is injected in the reposi
 
 ## Deploys
 
-The orchestrator does not deploy the service: your own deploy pipeline does. So that the console can show which version runs in each environment (domain page, deployed versions matrix), have that pipeline report every successful deploy. Set `ENV_SLUG` (the slug of the environment in the console, e.g. `DEV`, `PROD`), `VERSION`, `IMAGE` and `COMMIT_SHA`, with `MICROFRONTEND_ORCHESTRATOR_API_KEY` holding the deploy secret:
+The orchestrator does not deploy the service: your own deploy pipeline does. So that the console can show which version runs in each environment (domain page, deployed versions matrix), have that pipeline report every successful deploy. Set `ENV_SLUG` (the slug of the environment in the console, e.g. `DEV`, `PROD`), `VERSION`, `IMAGE` and `COMMIT_SHA`, with `FLIGHTROOM_API_KEY` holding the deploy secret:
 
 ```bash
 DOMAIN="${MICROFRONTEND_ORCHESTRATOR_DOMAIN:-%domain%}"
-curl -fsS -X POST "${DOMAIN%/}/api/services/by-slug/%serviceSlug%/environments/${ENV_SLUG}/deployments" \
-  -H "api-key: ${MICROFRONTEND_ORCHESTRATOR_API_KEY}" \
+curl -fsS -X POST "${DOMAIN%/}/api/backends/by-slug/%serviceSlug%/environments/${ENV_SLUG}/deployments" \
+  -H "api-key: ${FLIGHTROOM_API_KEY}" \
   -H "Content-Type: application/json" \
   -d "{\"version\":\"${VERSION}\",\"image\":\"${IMAGE}\",\"commitSha\":\"${COMMIT_SHA}\"}"
 ```

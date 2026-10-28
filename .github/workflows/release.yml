@@ -54,7 +54,7 @@ jobs:
 
       - name: Register version in MFE Orchestrator
         env:
-          MFE_API_KEY: ${{ secrets.MICROFRONTEND_ORCHESTRATOR_API_KEY }}
+          MFE_API_KEY: ${{ secrets.FLIGHTROOM_API_KEY }}
           VERSION: ${{ github.ref_name }}
           DIGEST: ${{ steps.build.outputs.digest }}
         run: |
@@ -62,4 +62,4 @@ jobs:
             -H "api-key: ${MFE_API_KEY}" \
             -H "Content-Type: application/json" \
             -d "{\"image\":\"${IMAGE}:${VERSION}\",\"digest\":\"${DIGEST}\",\"commitSha\":\"${GITHUB_SHA}\"}" \
-            "${MFE_DOMAIN%/}/api/services/by-slug/${MFE_SERVICE_SLUG}/versions/${VERSION}"
+            "${MFE_DOMAIN%/}/api/backends/by-slug/${MFE_SERVICE_SLUG}/versions/${VERSION}"
