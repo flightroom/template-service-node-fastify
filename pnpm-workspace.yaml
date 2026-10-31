@@ -1,3 +1,5 @@
 # Dependency build scripts need explicit approval in allowBuilds, or "pnpm install" fails with ERR_PNPM_IGNORED_BUILDS.
 allowBuilds:
   esbuild: true
+  # postinstall only warns about the version scheme of dependents, nothing to build (via @azure/monitor-opentelemetry)
+  protobufjs: false

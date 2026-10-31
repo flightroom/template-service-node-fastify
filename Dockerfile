@@ -25,4 +25,5 @@ USER 1000:1000
 EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
   CMD node -e "fetch('http://127.0.0.1:'+(process.env.PORT||8080)+'/health/live').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
-CMD ["node", "dist/index.js"]
+# instrumentation.js is preloaded so Application Insights, when configured, instruments fastify and node:http
+CMD ["node", "--import", "./dist/instrumentation.js", "dist/index.js"]
