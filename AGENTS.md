@@ -5,6 +5,7 @@ Node 26 LTS + TypeScript 7 + Fastify 5 backend service, packaged as a Docker ima
 ## Layout
 
 - `src/server.ts`: `buildApp()` creates the Fastify instance, registers `@fastify/swagger` + `@fastify/swagger-ui` and the routes (exported for tests).
+- `src/instrumentation.ts`: preloaded with `node --import` (start script, Dockerfile); sets up Azure Monitor (Application Insights) only when `APPLICATIONINSIGHTS_CONNECTION_STRING` is set. Keep it the first thing loaded, before fastify and `node:http`.
 - `src/index.ts`: reads `PORT` and `SHUTDOWN_DELAY_MS`, listens on `0.0.0.0`, handles SIGTERM/SIGINT graceful shutdown.
 - `test/*.test.ts`: vitest tests using `app.inject()`.
 - `Dockerfile`: multi-stage, non-root, healthcheck on `/health/live`.

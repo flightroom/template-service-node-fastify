@@ -36,6 +36,12 @@ Environment variables only:
 
 Keep `SHUTDOWN_DELAY_MS` below the Kubernetes `terminationGracePeriodSeconds` (30s by default) and the `docker stop` timeout. On Kubernetes you can raise it (e.g. `5000`) so the pod leaves the Service endpoints before connections are closed.
 
+## Application Insights
+
+In Flightroom, attach an "Application Insights" resource to the backend. The platform then passes the container `APPLICATIONINSIGHTS_CONNECTION_STRING`, along with `OTEL_SERVICE_NAME` (the backend slug) and `OTEL_RESOURCE_ATTRIBUTES` (e.g. `deployment.environment=prod,service.version=1.4.2`).
+
+`src/instrumentation.ts` is preloaded with `node --import` (`pnpm start` and the image) and calls `useAzureMonitor()` from [`@azure/monitor-opentelemetry`](https://learn.microsoft.com/azure/azure-monitor/app/opentelemetry-enable?tabs=nodejs) only when `APPLICATIONINSIGHTS_CONNECTION_STRING` is set: without it nothing is loaded and nothing is sent. With it, incoming requests, outgoing HTTP calls and metrics are collected, the cloud role name is `OTEL_SERVICE_NAME` and the application version is `service.version` from `OTEL_RESOURCE_ATTRIBUTES`. `pnpm dev` does not preload it.
+
 ## Test and build
 
 ```bash
